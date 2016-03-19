@@ -1,0 +1,44 @@
+
+body{
+    background-color: #E6E6E6;
+}
+
+h1,h2,h3,h4,h5,h6 {
+    color: #003A70;
+}
+
+h5{
+    font-weight: bold;
+}
+
+.wrapper
+{
+    max-width: 1185px;
+    margin: 0 auto;
+    min-height: 100%;
+    box-shadow: 0 0 8px rgba(0,0,0,0.5);
+    position: relative;
+    overflow: hidden;
+    background-color: white;
+}
+
+.main-header {
+    box-shadow: 0 0 1px rgba(0,0,0,0.5);
+    position: relative;
+    z-index: 1;
+}
+
+
+.content {
+    min-height: 250px;
+    padding: 15px;
+    margin-right: auto;
+    margin-left: auto;
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+.popover
+{
+    max-width:400px !important;
+}
