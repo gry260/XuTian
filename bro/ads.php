@@ -102,6 +102,32 @@ class ads
   {
     self::$total_visiting_time  =  $total_visiting_click * 60;
   }
+
+  public function getDifferenceTime()
+  {
+    $nowtime = time();
+    $time_elasped = $nowtime - $this->_register_time;
+    $hours =  str_pad(round($time_elasped / 3600, 0), 4, '0', STR_PAD_LEFT);
+    $minutes = str_pad($time_elasped/60%60, 2, '0', STR_PAD_LEFT);
+    $seconds = str_pad($time_elasped % 60, 2, '0', STR_PAD_LEFT);
+    return $hours.':'.$minutes.':'.$seconds;
+
+  }
+
+  private function time_elapsed_A($secs)
+  {
+    $bit = array(
+      'y' => $secs / 31556926 % 12,
+      'w' => $secs / 604800 % 52,
+      'd' => $secs / 86400 % 7,
+      'h' => $secs / 3600 % 24,
+      'm' => $secs / 60 % 60,
+      's' => $secs % 60
+    );
+
+    echo $bit["m"];
+  }
+
 }
 
 
