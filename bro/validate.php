@@ -15,7 +15,7 @@ $date = new DateTime();
 $registration_time = $date->getTimestamp();
 $_SESSION['msgs'] = array();
 
-$_SESSION['userinput']['title'] = strip_tags(urlencode($_POST['title'], ""));
+$_SESSION['userinput']['title'] = strip_tags(urlencode($_POST['title']));
 if(!empty($_POST['title'])){
   $title = urlencode($_POST['title']);
 }
@@ -44,9 +44,20 @@ else{
   $_SESSION['msgs'][] = 'Please provide an url.';
 }
 
-
-
 if(count($_SESSION['msgs']) > 0 ){
+  header("Location: ./");
+  exit;
+}
+
+
+$file_info = array();
+$file_info['file_info'] = $_FILES['image'];
+$file_info['max_file_size'] = '10485760';
+$file_info['allowed_extensions'] = array('png', 'jpg');
+
+$msgs = AdsFactory::ValidateFile($file_info);
+if ($msgs !== true) {
+  $_SESSION['msgs'] = $msgs;
   header("Location: ./");
   exit;
 }
@@ -63,13 +74,19 @@ foreach ($data as $key => $value) {
   else
     $types[$key] = PDO::PARAM_STR;
 }
-
-
-$file_path="3/".$_FILES["image"]["name"];
+$insert_id = AdsFactory::insert("sand.ads", $data, $types);
+$file_path=$insert_id.'/'.$_FILES["image"]["name"];
 $tmp_name = $_FILES["image"]["tmp_name"];
 $uploads = array("destination_file_path"=>$file_path, "tmp_name"=>$tmp_name, "seed"=>false);
 $r = AdsFactory::UploadFile($uploads);
-AdsFactory::insert("sand.ads", $data, $types);
+if(!empty($_SESSION['userinput'])){
+  unset($_SESSION['userinput']);
+}
+
+
+
+
+
 header("location:index.php");
 exit;
 

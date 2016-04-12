@@ -25,6 +25,8 @@ $allow_chars = array(",");
   <script src="js/script.js"></script>
   <script>
     $(document).ready(function () {
+
+
       $('form').formValidate();
       $('[data-toggle="popover"]').popover({
         content: function() {
@@ -34,11 +36,11 @@ $allow_chars = array(",");
       var total_ads = $("#total_ads").val();
       setInterval(function () {
         var t = parseInt($("#remaining_time").text()) - parseInt(total_ads);
-        $("#remaining_time").empty().text(t);
+        $("#remaining_time").empty().html('<i class="fa fa-clock-o"></i>&nbsp;'+t);
       }, 1000);
       $(".tracking").click(function () {
         var t = parseInt($("#remaining_time").text()) - parseInt(60);
-        $("#remaining_time").empty().text(t);
+        $("#remaining_time").empty().html('<i class="fa fa-clock-o"></i>&nbsp;'+t);
       });
       setInterval(function () {
         $(".time_management").each(function(){
@@ -60,7 +62,7 @@ $allow_chars = array(",");
             minutes = pad(res[1], 2);
             hours = pad(res[0], 4);
           }
-          $(this).empty().append(hours+":"+minutes+":"+seconds);
+          $(this).empty().append('<i class="fa fa-clock-o"></i>'+' '+hours+":"+minutes+":"+seconds);
         });
       }, 1000);
 
@@ -83,12 +85,29 @@ $allow_chars = array(",");
   <header class="main-header">
   </header>
   <div class="col-md-12" style="display: none;" id="popcontact">
+    <div class="col-md-12">
+      <?php
+      if(!empty($_SESSION['msgs'])){
+        ?>
+        <input type="hidden" value="1" id="error_log" />
+        <?php
+        echo '
+<div class="alert alert-warning" style="margin-top:25px;">
+    <h4 class="text-center"><i class="fa fa-warning"> Warning! </i></h4>';
+        foreach($_SESSION['msgs'] as $msg){
+          echo '<li style="list-style: none;">'.$msg.'</li>';
+        }
+        echo '</div>';
+        unset($_SESSION['msgs']);
+      }
+      ?>
+    </div>
     <div class="col-md-6">
       <form method="POST" action="validate.php" enctype="multipart/form-data">
         <div class="form-group">
           <div class="controls">
             <div>
-              <input name="title" data-chars='<?php echo json_encode($allow_chars);?>' type="text" class="form-control input-sm" placeholder="<?php echo (!empty($_SESSION['userinput']['title']) ? urldecode($_SESSION['userinput']['title']) : "Title");
+              <input name="title" data-chars='<?php echo json_encode($allow_chars);?>' type="text" class="form-control input-sm" placeholder="Title" value="<?php echo (!empty($_SESSION['userinput']['title']) ? urldecode($_SESSION['userinput']['title']) : "");
               ?>"/>
             </div>
           </div>
@@ -96,7 +115,7 @@ $allow_chars = array(",");
         <div class="form-group">
           <div class="controls">
             <div>
-              <input  name="description" date-required="true" type="text" class="form-control input-sm" placeholder="<?php echo (!empty($_SESSION['userinput']['description']) ? urldecode($_SESSION['userinput']['description']) : "Description");
+              <input  name="description" date-required="true" type="text" class="form-control input-sm" placeholder="Description" value="<?php echo (!empty($_SESSION['userinput']['description']) ? urldecode($_SESSION['userinput']['description']) : "");
               ?>" style="background-color: rgb(255, 255, 255);">
             </div>
           </div>
@@ -104,7 +123,7 @@ $allow_chars = array(",");
         <div class="form-group">
           <div class="controls">
             <div>
-              <input name="url"  type="text" class="form-control input-sm" placeholder="<?php echo (!empty($_SESSION['userinput']['url']) ? urldecode($_SESSION['userinput']['url']) : "Url");
+              <input name="url"  type="text" class="form-control input-sm" placeholder="Url" value="<?php echo (!empty($_SESSION['userinput']['url']) ? urldecode($_SESSION['userinput']['url']) : "");
               ?>" style="background-color: rgb(255, 255, 255);">
             </div>
           </div>
@@ -132,36 +151,21 @@ $allow_chars = array(",");
       </address>
     </div>
   </div>
-
   <div class="content-wrapper" style="min-height: 1178px;">
     <section class="content">
       <div class="pull-right" style="margin-bottom:10px; margin-right: 12%;">
         <button class="btn btn-xs btn-danger" id="open_button" data-toggle="popover" title="" data-html="true" data-placement="bottom">Contact US</button><br />
       </div>
-      <?php
-      if(!empty($_SESSION['msgs'])){
-        ?>
-      <input type="hidden" value="1" id="error_log" />
-      <?php
-        echo '
-<div class="alert alert-warning" style="margin-top:25px;">
-    <h4 class="text-center"><i class="fa fa-warning"> Warning! </i></h4>';
-        foreach($_SESSION['msgs'] as $msg){
-          echo '<li style="list-style: none;">'.$msg.'</li>';
-        }
-        echo '</div>';
-        unset($_SESSION['msgs']);
-      }
-      ?>
       <div class="col-md-12" style="height:60px; border: solid 1px #E6E6E6;">
         <div class="pull-right">
         </div>
-        <div class="pull-right" style="margin-right: 35px;">
-          <h4>
-            Time Remaining
-          </h4>
+        <div class="pull-right" id="test32" style="color:black;">
+          <h5>
+         Count Down
+          </h5>
           <h5>
             <span id="remaining_time">
+                  <i class="fa fa-clock-o"></i>
             <?php
             echo ads::getRemainingTime();
             ?>
@@ -174,9 +178,9 @@ $allow_chars = array(",");
           </h3>
         </div>
         <div class="pull-left" style="margin-right: 35px;">
-          <h5>
-            Total Clicks: <?php echo $totalclicks; ?>
-          </h5>
+          <h4>
+            <i class="fa fa-user-plus"></i> Total Clicks: <?php echo $totalclicks; ?>
+          </h4>
         </div>
       </div>
       <div class="col-md-12" style="height:60px; border: solid 1px #E6E6E6; margin-top:5px;">
@@ -188,16 +192,16 @@ $allow_chars = array(",");
           ?>
           <div class="col-md-4" style="height:60px; padding-right: 0px; padding-left:0px; border: solid 1px #E6E6E6;">
             <?php
-            if (current($objs) !== false) {
+            if (!empty($objs) && current($objs) !== false) {
               $mode = current($objs);
               ?>
-              <a href="tracking.php?id=<?php echo $mode->getId(); ?>&url=<?php echo urlencode($mode->getURL()); ?>"
-                 class="tracking" target="_blank">
+              <a class="tracking" target="_blank" href="tracking.php?id=<?php echo $mode->getId(); ?>&url=<?php echo urlencode($mode->getURL()); ?>"
+                 >
                 <img style=" width: 100%;
     height: 65%;
-    position: relative;"  src="vfs/<?php echo $mode->getUserId() . '/' . $mode->getFileName() ?>"/>
+    position: relative;" title="<?php echo $mode->getTitle().' - '.$mode->getDescription();?>"   src="vfs/<?php echo $mode->getId().'/' . $mode->getFileName() ?>"/>
               </a>
-              <p class="bg-danger time_management"><?php echo $mode->getDifferenceTime(); ?></p>
+              <p class="bg-danger time_management"><i class="fa fa-clock-o"></i>&nbsp;<?php echo $mode->getDifferenceTime(); ?></p>
               <?php
               next($objs);
             }
@@ -211,15 +215,15 @@ $allow_chars = array(",");
       <div class="col-md-4" style="margin-top:5px; padding: 0">
         <div class="col-md-12" style="height:180px; border: solid 1px #E6E6E6; ">
           <?php
-          if (current($objs) !== false) {
+          if (!empty($objs) && current($objs) !== false) {
             $mode = current($objs);
             ?>
             <a href="tracking.php?id=<?php echo $mode->getId(); ?>&url=<?php echo urlencode($mode->getURL()); ?>"
                class="tracking" target="_blank">
-              <img style=" width: 100%;
+              <img title="<?php echo $mode->getTitle().' - '.$mode->getDescription();?>" style=" width: 100%;
     height: 88%;
-    position: relative;" src="vfs/<?php echo $mode->getUserId() . '/' . $mode->getFileName() ?>"/> </a>
-            <p class="bg-danger time_management"><?php echo $mode->getDifferenceTime(); ?></p>
+    position: relative;" src="vfs/<?php echo $mode->getId() . '/' . $mode->getFileName() ?>"/> </a>
+            <p class="bg-danger time_management">       <i class="fa fa-clock-o"></i>&nbsp;<?php echo $mode->getDifferenceTime(); ?></p>
             <?php
             next($objs);
           }
@@ -233,15 +237,15 @@ $allow_chars = array(",");
           ?>
           <div class="col-md-4" style="height:60px; padding-right: 0px; padding-left:0px; border: solid 1px #E6E6E6;">
             <?php
-            if (current($objs) !== false) {
+            if (!empty($objs) && current($objs) !== false) {
               $mode = current($objs);
               ?>
               <a href="tracking.php?id=<?php echo $mode->getId(); ?>&url=<?php echo urlencode($mode->getURL()); ?>"
-                 class="tracking" target="_blank">
-                <img style=" width: 100%;
+                 class="tracking fancybox" target="_blank">
+                <img title="<?php echo $mode->getTitle().' - '.$mode->getDescription();?>" style=" width: 100%;
     height: 65%;
-    position: relative;" src="vfs/<?php echo $mode->getUserId() . '/' . $mode->getFileName() ?>"/> </a>
-              <p class="bg-danger time_management"><?php echo $mode->getDifferenceTime(); ?></p>
+    position: relative;" src="vfs/<?php echo $mode->getId() . '/' . $mode->getFileName() ?>"/> </a>
+              <p class="bg-danger time_management">       <i class="fa fa-clock-o"></i>&nbsp;<?php echo $mode->getDifferenceTime(); ?></p>
               <?php
               next($objs);
             }
@@ -259,15 +263,15 @@ $allow_chars = array(",");
           ?>
           <div class="col-md-4" style="height:60px; padding-right: 0px; padding-left:0px; border: solid 1px #E6E6E6;">
             <?php
-            if (current($objs) !== false) {
+            if (!empty($objs) && current($objs) !== false) {
               $mode = current($objs);
               ?>
               <a href="tracking.php?id=<?php echo $mode->getId(); ?>&url=<?php echo urlencode($mode->getURL()); ?>"
                  class="tracking" target="_blank">
-                <img style=" width: 100%;
+                <img title="<?php echo $mode->getTitle().' - '.$mode->getDescription();?>" style=" width: 100%;
     height: 100%;
-    position: relative;" src="vfs/<?php echo $mode->getUserId() . '/' . $mode->getFileName() ?>"/> </a>
-              <p class="bg-danger time_management"><?php echo $mode->getDifferenceTime(); ?></p>
+    position: relative;" src="vfs/<?php echo $mode->getId() . '/' . $mode->getFileName() ?>"/> </a>
+              <p class="bg-danger time_management">       <i class="fa fa-clock-o"></i>&nbsp;<?php echo $mode->getDifferenceTime(); ?></p>
               <?php
               next($objs);
             }
@@ -284,15 +288,15 @@ $allow_chars = array(",");
           ?>
           <div class="col-md-6" style="height:60px; padding-right: 0px; padding-left:0px; border: solid 1px #E6E6E6;">
             <?php
-            if (current($objs) !== false) {
+            if (!empty($objs) && current($objs) !== false) {
               $mode = current($objs);
               ?>
               <a href="tracking.php?id=<?php echo $mode->getId(); ?>&url=<?php echo urlencode($mode->getURL()); ?>"
                  class="tracking" target="_blank">
-                <img style=" width: 100%;
+                <img title="<?php echo $mode->getTitle().' - '.$mode->getDescription();?>" style=" width: 100%;
     height: 100%;
-    position: relative;" src="vfs/<?php echo $mode->getUserId() . '/' . $mode->getFileName() ?>"/> </a>
-              <p class="bg-danger time_management"><?php echo $mode->getDifferenceTime(); ?>asdf</p>
+    position: relative;" src="vfs/<?php echo $mode->getId() . '/' . $mode->getFileName() ?>"/> </a>
+              <p class="bg-danger time_management"><i class="fa fa-clock-o"></i>&nbsp;<?php echo $mode->getDifferenceTime(); ?></p>
               <?php
               next($objs);
             }
@@ -309,14 +313,15 @@ $allow_chars = array(",");
           ?>
           <div class="col-md-4" style="height:60px; padding-right: 0px; padding-left:0px; border: solid 1px #E6E6E6;">
             <?php
-            if (current($objs) !== false) {
+            if (!empty($objs) && current($objs) !== false) {
               $mode = current($objs);
               ?>
               <a href="tracking.php?id=<?php echo $mode->getId(); ?>&url=<?php echo urlencode($mode->getURL()); ?>"
                  class="tracking" target="_blank">
-                <img style=" width: 100%;
+                <img title="<?php echo $mode->getTitle().' - '.$mode->getDescription();?>" style=" width: 100%;
     height: 100%;
-    position: relative;" src="vfs/<?php echo $mode->getUserId() . '/' . $mode->getFileName() ?>"/> </a>
+    position: relative;" src="vfs/<?php echo $mode->getId() . '/' . $mode->getFileName() ?>"/> </a>
+              <p class="bg-danger time_management"><i class="fa fa-clock-o"></i>&nbsp;<?php echo $mode->getDifferenceTime(); ?></p>
               <?php
               next($objs);
             }
@@ -332,14 +337,15 @@ $allow_chars = array(",");
         ?>
         <div class="col-md-2" style="height:60px; padding-right: 0px; padding-left:0px; border: solid 1px #E6E6E6;">
           <?php
-          if (current($objs) !== false) {
+          if (!empty($objs) && current($objs) !== false) {
             $mode = current($objs);
             ?>
             <a href="tracking.php?id=<?php echo $mode->getId(); ?>&url=<?php echo urlencode($mode->getURL()); ?>"
                class="tracking" target="_blank">
-              <img style=" width: 100%;
+              <img title="<?php echo $mode->getTitle().' - '.$mode->getDescription();?>" style=" width: 100%;
     height: 100%;
-    position: relative;" src="vfs/<?php echo $mode->getUserId() . '/' . $mode->getFileName() ?>"/> </a>
+    position: relative;" src="vfs/<?php echo $mode->getId() . '/' . $mode->getFileName() ?>"/> </a>
+            <p class="bg-danger time_management"><i class="fa fa-clock-o"></i>&nbsp;<?php echo $mode->getDifferenceTime(); ?></p>
             <?php
             next($objs);
           }
@@ -356,14 +362,15 @@ $allow_chars = array(",");
           ?>
           <div class="col-md-4" style="height:60px; padding-right: 0px; padding-left:0px; border: solid 1px #E6E6E6;">
             <?php
-            if (current($objs) !== false) {
+            if (!empty($objs) && current($objs) !== false) {
               $mode = current($objs);
               ?>
               <a href="tracking.php?id=<?php echo $mode->getId(); ?>&url=<?php echo urlencode($mode->getURL()); ?>"
                  class="tracking" target="_blank">
-                <img style=" width: 100%;
+                <img title="<?php echo $mode->getTitle().' - '.$mode->getDescription();?>" style=" width: 100%;
     height: 100%;
-    position: relative;" src="vfs/<?php echo $mode->getUserId() . '/' . $mode->getFileName() ?>"/> </a>
+    position: relative;" src="vfs/<?php echo $mode->getId() . '/' . $mode->getFileName() ?>"/> </a>
+              <p class="bg-danger time_management">       <i class="fa fa-clock-o"></i>&nbsp;<?php echo $mode->getDifferenceTime(); ?></p>
               <?php
               next($objs);
             }
@@ -380,13 +387,14 @@ $allow_chars = array(",");
           ?>
           <div class="col-md-12" style="height:240px; border: solid 1px #E6E6E6;">
             <?php
-            if (current($objs) !== false) {
+            if (!empty($objs) && current($objs) !== false) {
               $mode = current($objs);
               ?>
               <a href="tracking.php?id=<?php echo $mode->getId(); ?>&url=<?php echo urlencode($mode->getURL()); ?>"
                  class="tracking" target="_blank">
                 <img style=" width: 100%; height: 100%; position: relative;"
-                     src="vfs/<?php echo $mode->getUserId() . '/' . $mode->getFileName() ?>"/> </a>
+                     src="vfs/<?php echo $mode->getId() . '/' . $mode->getFileName() ?>"/> </a>
+              <p class="bg-danger time_management">       <i class="fa fa-clock-o"></i>&nbsp;<?php echo $mode->getDifferenceTime(); ?></p>
               <?php
               next($objs);
             }
@@ -403,13 +411,14 @@ $allow_chars = array(",");
           ?>
           <div class="col-md-4" style="height:60px; padding-right: 0px; padding-left:0px; border: solid 1px #E6E6E6;">
             <?php
-            if (current($objs) !== false) {
+            if (!empty($objs) && current($objs) !== false) {
               $mode = current($objs);
               ?>
               <a href="tracking.php?id=<?php echo $mode->getId(); ?>&url=<?php echo urlencode($mode->getURL()); ?>"
                  class="tracking" target="_blank">
-                <img style=" width: 100%; height: 100%; position: relative;"
-                     src="vfs/<?php echo $mode->getUserId() . '/' . $mode->getFileName() ?>"/> </a>
+                <img title="<?php echo $mode->getTitle().' - '.$mode->getDescription();?>" style=" width: 100%; height: 100%; position: relative;"
+                     src="vfs/<?php echo $mode->getId() . '/' . $mode->getFileName() ?>"/> </a>
+              <p class="bg-danger time_management">       <i class="fa fa-clock-o"></i>&nbsp;<?php echo $mode->getDifferenceTime(); ?></p>
               <?php
               next($objs);
             }
@@ -427,13 +436,14 @@ $allow_chars = array(",");
           ?>
           <div class="col-md-4" style="height:60px; padding-right: 0px; padding-left:0px; border: solid 1px #E6E6E6;">
             <?php
-            if (current($objs) !== false) {
+            if (!empty($objs) && current($objs) !== false) {
               $mode = current($objs);
               ?>
               <a href="tracking.php?id=<?php echo $mode->getId(); ?>&url=<?php echo urlencode($mode->getURL()); ?>"
                  class="tracking" target="_blank">
-                <img style=" width: 100%; height: 100%; position: relative;"
-                     src="vfs/<?php echo $mode->getUserId() . '/' . $mode->getFileName() ?>"/> </a>
+                <img title="<?php echo $mode->getTitle().' - '.$mode->getDescription();?>" style=" width: 100%; height: 100%; position: relative;"
+                     src="vfs/<?php echo $mode->getId() . '/' . $mode->getFileName() ?>"/> </a>
+              <p class="bg-danger time_management">       <i class="fa fa-clock-o"></i>&nbsp;<?php echo $mode->getDifferenceTime(); ?></p>
               <?php
               next($objs);
             }
@@ -450,13 +460,14 @@ $allow_chars = array(",");
           ?>
           <div class="col-md-6" style="height:180px; padding-right: 0px; padding-left:0px; border: solid 1px #E6E6E6;">
             <?php
-            if (current($objs) !== false) {
+            if (!empty($objs) && current($objs) !== false) {
               $mode = current($objs);
               ?>
               <a href="tracking.php?id=<?php echo $mode->getId(); ?>&url=<?php echo urlencode($mode->getURL()); ?>"
                  class="tracking" target="_blank">
                 <img style=" width: 100%; height: 100%; position: relative;"
-                     src="vfs/<?php echo $mode->getUserId() . '/' . $mode->getFileName() ?>"/> </a>
+                     src="vfs/<?php echo $mode->getId() . '/' . $mode->getFileName() ?>"/> </a>
+              <p class="bg-danger time_management">       <i class="fa fa-clock-o"></i>&nbsp;<?php echo $mode->getDifferenceTime(); ?></p>
               <?php
               next($objs);
             }
@@ -473,13 +484,14 @@ $allow_chars = array(",");
           ?>
           <div class="col-md-4" style="height:60px; padding-right: 0px; padding-left:0px; border: solid 1px #E6E6E6;">
             <?php
-            if (current($objs) !== false) {
+            if (!empty($objs) && current($objs) !== false) {
               $mode = current($objs);
               ?>
               <a href="tracking.php?id=<?php echo $mode->getId(); ?>&url=<?php echo urlencode($mode->getURL()); ?>"
                  class="tracking" target="_blank">
-                <img style=" width: 100%; height: 100%; position: relative;"
-                     src="vfs/<?php echo $mode->getUserId() . '/' . $mode->getFileName() ?>"/> </a>
+                <img title="<?php echo $mode->getTitle().' - '.$mode->getDescription();?>" style=" width: 100%; height: 100%; position: relative;"
+                     src="vfs/<?php echo $mode->getId() . '/' . $mode->getFileName() ?>"/> </a>
+              <p class="bg-danger time_management">       <i class="fa fa-clock-o"></i>&nbsp;<?php echo $mode->getDifferenceTime(); ?></p>
               <?php
               next($objs);
             }
@@ -489,10 +501,14 @@ $allow_chars = array(",");
         }
         ?>
       </div>
-
     </section>
   </div>
 </div>
 </div>
 </body>
 </html>
+<?php
+if(!empty($_SESSION['userinput'])){
+  unset($_SESSION['userinput']);
+}
+?>

@@ -12,6 +12,101 @@ require_once("db.php");
 class AdsFactory
 {
 
+
+  public  static function ValidateFile($file)
+  {
+    /* check size of file is less than max file size. We have to do it this way
+       because $_FILES[] array will be empty if a file exceeds the upload limit
+       in php.ini. For the same reason put this check before the empty() checks. */
+
+    /* First set max file size allowed for uploading. */
+    if (isset($file['max_file_size']) && !empty($file['max_file_size']))
+      $max_file_size = $file['max_file_size'];
+    else
+      $max_file_size = file_upload_max_size();
+
+
+    if (isset($_SERVER['CONTENT_LENGTH'])
+      && (int) $_SERVER['CONTENT_LENGTH'] > $max_file_size) {
+      $msg[] = 'You cannot upload more than ' .
+        round($max_file_size / 1024 / 1024, 2) . 'MB at a time.';
+      return $msg;
+    } /* Warn if a file wasn't selected for uploading. */
+    elseif ($file['file_info']['error'] === UPLOAD_ERR_NO_FILE) {
+      $msg[] = 'Please select a file to upload.';
+      return $msg;
+    } /* Warn if file is empty. */
+    elseif (empty($file['file_info']['size'])) {
+      $msg[] = 'The file you uploaded is empty.';
+      return $msg;
+    } /* Warn if file size isn't an integer. */
+    elseif (!preg_match('/^[0-9]+$/',$file['file_info']['size'])) {
+      $msg[] = 'Invalid file size.';
+      return $msg;
+    }
+
+    /* Warn if file extension is in not array of allowable extensions. Allow devs
+       to supply uppercase or lowercase extensions in array. */
+    foreach ($file['allowed_extensions'] as $extension) {
+      $allowed_extensions_lcase[] = strtolower($extension);
+    }
+
+    if (!in_array(
+      strtolower(pathinfo($file['file_info']['name'], PATHINFO_EXTENSION)),
+      $allowed_extensions_lcase)) {
+      $m = "Please upload one of the following file types: " .
+        implode(', ', $allowed_extensions_lcase) . ".";
+
+      $msg[] = $m;
+    }
+
+    $m = self::get_file_error_msg($file['file_info']['error']);
+
+    if ($m !== true) {
+      $msg[] = $m;
+    }
+
+
+    if (isset($msg) && count($msg) > 0) {
+      return $msg;
+    } else {
+      return true;
+    }
+  }
+
+  /* returns an appropriate error code along with the file array.
+ * The error code can be found in the error segment
+ * of the file array that is created during the file upload by PHP.
+ * */
+  private static function get_file_error_msg($error_code)
+  {
+    switch ($error_code) {
+      case 0:
+        return true;
+      case 1:
+        return "The uploaded file exceeds the upload_max_filesize
+      directive in php.ini.";
+        break;
+      case 2:
+        return "The uploaded file exceeds the MAX_FILE_SIZE directive that
+      was specified in the HTML form.";
+        break;
+      case 3:
+        return "The uploaded file was only partially uploaded.";
+        break;
+      case 4:
+        return "No file was uploaded.";
+        break;
+      case 6:
+        return "Missing a temporary folder.";
+        break;
+      case 7:
+        return "Unable to write the file.";
+        break;
+      default:
+        return false;
+    }
+  }
   /* the error code resulting from the file upload */
   public static function UploadFile($file_upload)
   {
@@ -168,7 +263,7 @@ class AdsFactory
   public static function fetchAllAds()
   {
     global $pdo_dbh;
-    $q = 'select * from sand.ads order by id desc';
+    $q = 'select * from sand.ads where active = "1" order by id desc';
     $sth = $pdo_dbh->prepare($q);
     $sth->execute();
     $count = $sth->rowCount();

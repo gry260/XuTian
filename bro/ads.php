@@ -28,6 +28,7 @@ class ads
     $this->_id = $id;
     $this->_title = $title;
     $this->_register_time = $register_time;
+    $this->_description = $description;
     $this->_click= $click;
     self::$total_time += time()-$this->_register_time;
     self::$total_ads++;
